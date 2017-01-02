@@ -4,6 +4,7 @@
 
 #include <SDL2/SDL.h>
 
+#include <QRect>
 #include <QWebView>
 #include <QWebSettings>
 #include <QLineEdit>
@@ -41,6 +42,8 @@ void toggleVideo();
 quint64 dataUsed_total_hold = 0;
 quint64 dataUsed_total = 0;
 quint64 dataUsed_page = 0;
+
+QRect saveLastGeometry;
 
 bool imagesOn;
 bool hideData;
@@ -123,6 +126,8 @@ MainWindow::MainWindow(QWidget *parent)
     noJScriptBox->setText("Turn on JavaScripts");
     noVideoBox->setText("Turn on Video Streaming");
 
+    optionshlay->setAlignment(Qt::AlignBottom);
+
     vlay->addWidget(adressBar);
     vlay->addWidget(web);
     vlay->addWidget(showDataBtn);
@@ -134,7 +139,7 @@ MainWindow::MainWindow(QWidget *parent)
     optionshlay->addWidget(noVideoBox);
     options->setLayout(optionshlay);
     vlay->addWidget(options);
-    vlay->addWidget(linkClickedLabel);
+//    vlay->addWidget(linkClickedLabel);
 //     hlay->addWidget(adressBar);
     hlay->addLayout(vlay);
 
@@ -334,10 +339,17 @@ void MainWindow::toggleFullScreen()
     fullScreenOn = !fullScreenOn;
     if(fullScreenOn)
     {
+        saveLastGeometry = this->geometry();
         this->setWindowState(Qt::WindowFullScreen);
+        QRect curentGeo = this->geometry();
+        curentGeo.moveTop(curentGeo.y() + 20);
+        curentGeo.moveBottom(curentGeo.height() - 40);
+
+        web->setGeometry(curentGeo);
+
     }
     else
     {
-        this->setWindowState(Qt::WindowModal);
+        this->setWindowState(Qt::WindowMaximized);
     }
 }
