@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include <string>
 #include <sstream>
+#include <iostream>
 
 #include <SDL2/SDL.h>
 
@@ -64,7 +65,7 @@ QLabel * dataUseage = NULL;
 QString duString;
 QPushButton * hideDataBtn = NULL;
 QPushButton * showDataBtn = NULL;
-QLabel * linkClickedLabel = NULL;
+
 
 QTimer * timer = NULL;
 QCheckBox * noImagesBox = NULL;
@@ -98,7 +99,8 @@ MainWindow::MainWindow(QWidget *parent)
     noVideoBox = new QCheckBox(this);
     hideDataBtn = new QPushButton(this);
     showDataBtn = new QPushButton(this);
-    linkClickedLabel = new QLabel;
+
+
 
 
     hideDataBtn->setMaximumHeight(15);
@@ -139,8 +141,6 @@ MainWindow::MainWindow(QWidget *parent)
     optionshlay->addWidget(noVideoBox);
     options->setLayout(optionshlay);
     vlay->addWidget(options);
-//    vlay->addWidget(linkClickedLabel);
-//     hlay->addWidget(adressBar);
     hlay->addLayout(vlay);
 
     web->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
@@ -306,13 +306,14 @@ QUrl urlparse(QString url)
     std::string temp = url.toStdString();
     if(temp.substr(0, 7) != "http://")\
     {
-
+        temp = "http://" + temp;
     }
-    else if(temp.substr(0, 11) != "http://www.")
+    if(temp.substr(0, 11) != "http://www.")
     {
-        temp = "http://www." + url.toStdString();
+        temp = "http://www.";
+        temp += url.toStdString();
     }
-    url.fromStdString(temp);
+    url = url.fromStdString(temp);
     return QUrl(url);
 
 }
