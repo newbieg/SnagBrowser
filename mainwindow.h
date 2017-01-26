@@ -13,6 +13,7 @@ public:
 public slots:
     void myLinkClicked(const QUrl & clickedUrl);
     void toggleFullScreen();
+    void loadCheck(bool);
 
 };
 

@@ -22,14 +22,14 @@
 #include <QWebFrame>
 
 void linkClickedAction();
-void saveNewPage();
+void pageLoaded();
 void newAdress();
 
 
 QString quint64ToQString(quint64 number);
 QString quint64ToClosestUnit(quint64 number);
 QString toFullUrl(QString adressGiven);
-QUrl urlparse(QString url);
+QUrl urlparse(const QString &url);
 
 // Semi-slots
 void updateUseage();
@@ -43,7 +43,7 @@ void toggleVideo();
 quint64 dataUsed_total_hold = 0;
 quint64 dataUsed_total = 0;
 quint64 dataUsed_page = 0;
-
+size_t badLink;
 QRect saveLastGeometry;
 
 bool imagesOn;
@@ -51,6 +51,7 @@ bool hideData;
 bool javaScriptsOn;
 bool videoPlayOn;
 bool fullScreenOn = false;
+
 
 QWidget * myWindow = NULL;
 QWidget * hideShowOptions = NULL;
@@ -75,6 +76,7 @@ QCheckBox * noVideoBox = NULL;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    badLink = 0;
 
     QWidget *window = new QWidget;
     QWidget * options = new QWidget;
@@ -146,7 +148,7 @@ MainWindow::MainWindow(QWidget *parent)
     web->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
 
     connect(web, SIGNAL(linkClicked(QUrl)), this, SLOT(myLinkClicked(QUrl)));
-    connect(web, &QWebView::loadFinished, saveNewPage);
+    connect(web, SIGNAL(loadFinished(bool)), this, SLOT(loadCheck(bool)));
     connect(adressBar, &QLineEdit::returnPressed, newAdress);
     connect(timer, &QTimer::timeout, smallTimeUpdate);
     connect(noImagesBox, &QCheckBox::toggled, toggleImages);
@@ -156,15 +158,17 @@ MainWindow::MainWindow(QWidget *parent)
     connect(showDataBtn, &QPushButton::clicked, toggleVideo);
 
     timer->start(500);
+
+    this->setCentralWidget(window);
     window->setLayout(hlay);
 
-    setCentralWidget(window);
+
 
 }
 
 
 // A page is finished loading, update dataUseage_total
-void saveNewPage()
+void pageLoaded()
 {
 
     dataUsed_total += dataUsed_page;
@@ -173,6 +177,28 @@ void saveNewPage()
     adressBar->setText(nextLink.toString());
 //    web->stop();
 //    web->load(nextLink);
+}
+
+void MainWindow::loadCheck(bool success)
+{
+    if(!success && badLink < 2)
+    {
+        web->load(urlparse(adressBar->text()));
+
+        QUrl nextLink = web->url();
+
+        badLink ++;
+    }
+    else
+    {
+        dataUsed_total += dataUsed_page;
+        updateUseage();
+
+        QUrl nextLink = web->url();
+        adressBar->setText(nextLink.toString());
+        badLink = 0;
+    }
+
 }
 
 // A link has been clicked, check if there's a local copy, if there isn't then
@@ -209,17 +235,17 @@ QString quint64ToClosestUnit(quint64 number)
     if(tempNum > 1024)
     {
         tempNum /= 1024;
-        unit = "Kbs";
+        unit = "Kb";
     }
     if(tempNum > 1024)
     {
         tempNum /= 1024;
-        unit = "Mbs";
+        unit = "Mb";
     }
     if(tempNum > 1024)
     {
         tempNum /= 1024;
-        unit = "Gbs";
+        unit = "Gb";
      }
     std::string tempString;
     std::stringstream ss;
@@ -301,20 +327,20 @@ void toggleVideo()
 
 
 // Take user input and parse it into a URL if they forget http://www. or combo thereof.
-QUrl urlparse(QString url)
+QUrl urlparse(const QString &url)
 {
     std::string temp = url.toStdString();
     if(temp.substr(0, 7) != "http://")\
     {
         temp = "http://" + temp;
     }
-    if(temp.substr(0, 11) != "http://www.")
+    else if(temp.substr(0, 11) != "http://www.")
     {
-        temp = "http://www.";
-        temp += url.toStdString();
+        temp = "http://www." + temp.substr(11);
     }
-    url = url.fromStdString(temp);
-    return QUrl(url);
+
+    QString newurl = QString::fromStdString(temp);
+    return QUrl(newurl);
 
 }
 
