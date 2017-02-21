@@ -1,4 +1,8 @@
 #Snag Browser
+##Build: 
+Either use qtcreator5 on the SnagBrowser.pro file, or use $make in the command line.
+Then move the newly created executable into your local bin or run from the folder you built it in.
+
 ##Shortcuts:
 1) ctrl-q = quit
 2) f11 = Full Screen
