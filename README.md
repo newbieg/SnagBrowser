@@ -1,7 +1,4 @@
 #Snag Browser
-##Build: 
-Either use qtcreator5 on the SnagBrowser.pro file, or use $make in the command line.
-Then move the newly created executable into your local bin or run from the folder you built it in.
 
 ##Shortcuts:
 1. ctrl-q = quit
@@ -21,3 +18,6 @@ If all three are enabled (you've selected all three) then you will have a normal
 This is a work-in-progress of course. Next to be implemented is a back/foreward/refresh button set, but that's been on my mind since I started this project. For now, right-click on white area and it will give those options or use the shortcuts as listed above.
 
 
+##Build: 
+Either use qtcreator5 on the SnagBrowser.pro file, or use $make in the command line.
+Then move the newly created executable into your local bin or run from the folder you built it in.
