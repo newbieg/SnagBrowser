@@ -25,11 +25,15 @@ void linkClickedAction();
 void pageLoaded();
 void newAdress();
 
+bool replacechar(QString &input, char original, char replacement);
+
 
 QString quint64ToQString(quint64 number);
 QString quint64ToClosestUnit(quint64 number);
 QString toFullUrl(QString adressGiven);
 QUrl urlparse(const QString &url);
+
+QString originalInput;
 
 // Semi-slots
 void updateUseage();
@@ -43,8 +47,8 @@ void toggleVideo();
 quint64 dataUsed_total_hold = 0;
 quint64 dataUsed_total = 0;
 quint64 dataUsed_page = 0;
-size_t badLink;
 QRect saveLastGeometry;
+size_t badLink;
 
 bool imagesOn;
 bool hideData;
@@ -76,16 +80,17 @@ QCheckBox * noVideoBox = NULL;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    badLink = 0;
 
+    badLink = 0;
     QWidget *window = new QWidget;
     QWidget * options = new QWidget;
+    options->setMaximumHeight(35);
     myWindow = window;
     hideShowOptions = options;
     //Keyboard Shortcuts go here.
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(close()));
     new QShortcut(QKeySequence(Qt::Key_F11), this, SLOT(toggleFullScreen()));
-
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Less), web, SLOT(back()));
 
     hlay = new QHBoxLayout(this);
     optionshlay = new QHBoxLayout(this);
@@ -181,12 +186,21 @@ void pageLoaded()
 
 void MainWindow::loadCheck(bool success)
 {
+    /*
     if(!success && badLink < 2)
     {
-        web->load(urlparse(adressBar->text()));
-
-        QUrl nextLink = web->url();
-
+        QUrl newUrl(urlparse(adressBar->text()));
+        web->load(newUrl);
+        adressBar->setText(newUrl.toString());
+        badLink ++;
+    }
+    else
+    */if(!success) // try searching for the term in google
+    {
+        QString temp = "https://www.google.com/search?&q=";
+        temp += originalInput;
+        QUrl newUrl(temp);
+        web->load(newUrl);
         badLink ++;
     }
     else
@@ -194,9 +208,10 @@ void MainWindow::loadCheck(bool success)
         dataUsed_total += dataUsed_page;
         updateUseage();
 
+        badLink = 0;
+
         QUrl nextLink = web->url();
         adressBar->setText(nextLink.toString());
-        badLink = 0;
     }
 
 }
@@ -211,8 +226,23 @@ void linkClickedAction()
 // User pressed enter while in adressBar, asume new adress is requested.
 void newAdress()
 {
-    QUrl link = urlparse(adressBar->text());
-    web->load(link);
+    originalInput = adressBar->text();
+    badLink = 0;
+    if(replacechar(originalInput, ' ', '+'))
+    {
+        // the input is likely a search request, there is also a backup for single words in loadCheck() slot if search fails...
+        QString temp;
+        temp = "https://www.google.com/search?&q=";
+        temp += originalInput;
+        QUrl link(temp);
+        web->load(link);
+    }
+    else
+    {
+        QUrl link(urlparse(adressBar->text()));
+        web->load(link);
+    }
+
 }
 
 // Turn number into a QString
@@ -330,13 +360,14 @@ void toggleVideo()
 QUrl urlparse(const QString &url)
 {
     std::string temp = url.toStdString();
-    if(temp.substr(0, 7) != "http://")\
+
+    if(temp.substr(0, 7) != "http://" && temp.substr(0, 8) != "https://")
     {
         temp = "http://" + temp;
     }
-    else if(temp.substr(0, 11) != "http://www.")
+    else if(temp.substr(0, 11) != "http://www." && temp.substr(0, 12) != "https://www.")
     {
-        temp = "http://www." + temp.substr(11);
+        temp = "http://www." + temp.substr(7);
     }
 
     QString newurl = QString::fromStdString(temp);
@@ -379,4 +410,22 @@ void MainWindow::toggleFullScreen()
     {
         this->setWindowState(Qt::WindowMaximized);
     }
+}
+
+
+
+bool replacechar(QString &input, char original, char replacement)
+{
+    bool foundReplacementChar = false;
+    std::string temp = input.toStdString();
+    for(size_t i = 0; i < temp.length(); i ++)
+    {
+        if(temp[i] == original)
+        {
+            foundReplacementChar = true;
+            temp[i] = replacement;
+        }
+    }
+    input = QString::fromStdString(temp);
+    return foundReplacementChar;
 }

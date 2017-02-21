@@ -1,6 +1,7 @@
 #Snag Browser
 ##Shortcuts:
 1) ctrl-q = quit
+
 2) f11 = Full Screen
 
 ##Description:
