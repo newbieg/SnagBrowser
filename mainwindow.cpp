@@ -90,7 +90,9 @@ MainWindow::MainWindow(QWidget *parent)
     //Keyboard Shortcuts go here.
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(close()));
     new QShortcut(QKeySequence(Qt::Key_F11), this, SLOT(toggleFullScreen()));
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Less), web, SLOT(back()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_B), this, SLOT(goBack()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Left), this, SLOT(goBack()));
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Right), this, SLOT(goForward()));
 
     hlay = new QHBoxLayout(this);
     optionshlay = new QHBoxLayout(this);
@@ -166,9 +168,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setCentralWidget(window);
     window->setLayout(hlay);
-
-
-
 }
 
 
@@ -412,6 +411,14 @@ void MainWindow::toggleFullScreen()
     }
 }
 
+void MainWindow::goBack()
+{
+    web->page()->triggerAction(QWebPage::Back);
+}
+void MainWindow::goForward()
+{
+    web->page()->triggerAction(QWebPage::Forward);
+}
 
 
 bool replacechar(QString &input, char original, char replacement)
@@ -429,3 +436,6 @@ bool replacechar(QString &input, char original, char replacement)
     input = QString::fromStdString(temp);
     return foundReplacementChar;
 }
+
+
+
