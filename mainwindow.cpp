@@ -31,7 +31,7 @@ bool replacechar(QString &input, char original, char replacement);
 QString quint64ToQString(quint64 number);
 QString quint64ToClosestUnit(quint64 number);
 QString toFullUrl(QString adressGiven);
-QUrl urlparse(const QString &url);
+QUrl urlparse(const QString &url, size_t & failLevel);
 
 QString originalInput;
 
@@ -48,7 +48,7 @@ quint64 dataUsed_total_hold = 0;
 quint64 dataUsed_total = 0;
 quint64 dataUsed_page = 0;
 QRect saveLastGeometry;
-size_t badLink;
+size_t badLink = 0;
 
 bool imagesOn;
 bool hideData;
@@ -185,22 +185,15 @@ void pageLoaded()
 
 void MainWindow::loadCheck(bool success)
 {
-    /*
-    if(!success && badLink < 2)
+    if(!success && badLink < 4)
     {
-        QUrl newUrl(urlparse(adressBar->text()));
-        web->load(newUrl);
+        std::cout << "Got to badCheck\n";
+        QUrl newUrl = urlparse(adressBar->text(), badLink);
+
         adressBar->setText(newUrl.toString());
         badLink ++;
-    }
-    else
-    */if(!success) // try searching for the term in google
-    {
-        QString temp = "https://www.google.com/search?&q=";
-        temp += originalInput;
-        QUrl newUrl(temp);
-        web->load(newUrl);
-        badLink ++;
+
+        emit adressBar->returnPressed();
     }
     else
     {
@@ -226,7 +219,7 @@ void linkClickedAction()
 void newAdress()
 {
     originalInput = adressBar->text();
-    badLink = 0;
+
     if(replacechar(originalInput, ' ', '+'))
     {
         // the input is likely a search request, there is also a backup for single words in loadCheck() slot if search fails...
@@ -238,10 +231,9 @@ void newAdress()
     }
     else
     {
-        QUrl link(urlparse(adressBar->text()));
+        QUrl link = urlparse(adressBar->text(), badLink);
         web->load(link);
     }
-
 }
 
 // Turn number into a QString
@@ -356,22 +348,38 @@ void toggleVideo()
 
 
 // Take user input and parse it into a URL if they forget http://www. or combo thereof.
-QUrl urlparse(const QString &url)
+QUrl urlparse(const QString &url, size_t & failLevel)
 {
+    QUrl tempUrl(url);
+    if(tempUrl.isValid() && failLevel == 0)
+    {
+        return tempUrl;
+    }
     std::string temp = url.toStdString();
 
-    if(temp.substr(0, 7) != "http://" && temp.substr(0, 8) != "https://")
+    if(temp.substr(0, 7) != "http://" && temp.substr(0, 8) != "https://" && failLevel <= 1)
     {
         temp = "http://" + temp;
+        QString newurl = QString::fromStdString(temp);
+        QUrl test(newurl);
+        if(test.isValid())
+        {
+            return test;
+        }
     }
-    else if(temp.substr(0, 11) != "http://www." && temp.substr(0, 12) != "https://www.")
+
+    if(temp.substr(0, 11) != "http://www." && temp.substr(0, 12) != "https://www." && failLevel > 1)
     {
         temp = "http://www." + temp.substr(7);
+        QString newurl = QString::fromStdString(temp);
+        QUrl test(newurl);
+        if(test.isValid())
+        {
+            return test;
+        }
     }
 
-    QString newurl = QString::fromStdString(temp);
-    return QUrl(newurl);
-
+    return QUrl(url);
 }
 
 MainWindow::~MainWindow()
@@ -425,6 +433,7 @@ bool replacechar(QString &input, char original, char replacement)
 {
     bool foundReplacementChar = false;
     std::string temp = input.toStdString();
+
     for(size_t i = 0; i < temp.length(); i ++)
     {
         if(temp[i] == original)

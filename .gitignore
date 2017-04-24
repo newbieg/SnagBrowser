@@ -31,3 +31,7 @@
 # Qt project eroneous files
 *.autosave
 *.user
+*.pro.user
+moc_*
+
+SnagBrowser
