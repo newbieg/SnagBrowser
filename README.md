@@ -1,13 +1,13 @@
-#Snag Browser
+# Snag Browser
 
-##Shortcuts:
+## Shortcuts:
 1. ctrl-q = quit
 2. f11 = Full Screen
 3. ctrl-b = go back
 4. ctrl-LeftArrow = go back
 5. ctrl-RightArrow = go forward
 
-##Description:
+## Description:
 
 A browser focused on eliminating distractions and reducing the data used in every-day browsing. 
 
@@ -17,11 +17,11 @@ If all three are enabled (you've selected all three) then you will have a normal
 
 
 
-##Build: 
+## Build: 
 Either use qtcreator5 on the SnagBrowser.pro file, or use $make in the command line.
 Then move the newly created executable into your local bin or run from the folder you built it in.
 
-##Up and Comming:
+## Up and Comming:
 * Back/foreward/refresh button sets near the address bar.
 * Webcrawl-To-PDF-feature. Turn this on and a PDF will begin to emerge of your internet adventures. Every page that loads will be added to this pdf... That's why I named it the SnagBrowser; Idealy you are snagging the data so you can return to it without further use of your precious data.
 * Eventually I want the previous option to output in a searchable manner, which pdf's aren't all that efficient in doing sometimes.
